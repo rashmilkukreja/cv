@@ -6,6 +6,7 @@ on:
       - main
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   IMAGE_NAME: devops-cv
   DOCKERHUB_USERNAME: rakukrej
   HELM_RELEASE: cv-release

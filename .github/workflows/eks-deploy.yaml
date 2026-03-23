@@ -6,6 +6,7 @@ on:
       - main
 
 env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: devops-cv
   EKS_CLUSTER_NAME: devops-cv-cluster
