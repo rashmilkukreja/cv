@@ -32,26 +32,3 @@ jobs:
       - name: Push Docker image
         run: |
           docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
-
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v3
-
-      - name: Setup Helm
-        uses: azure/setup-helm@v3
-
-      - name: Set kubeconfig
-        run: |
-          echo "${{ secrets.KUBECONFIG }}" > kubeconfig
-          export KUBECONFIG=$PWD/kubeconfig
-
-      - name: Deploy using Helm
-        run: |
-          helm upgrade --install $HELM_RELEASE ./helm/cv-chart
