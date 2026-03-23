@@ -10,7 +10,7 @@ env:
   IMAGE_NAME: devops-cv
   DOCKERHUB_USERNAME: rakukrej
   HELM_RELEASE: cv-release
-
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
