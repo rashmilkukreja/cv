@@ -1,30 +1,58 @@
+# Number of pod replicas to run initially
 replicaCount: 1
 
 image:
-  repository: cv-apache
+  # Docker image repository (Docker Hub / private registry)
+  repository: rakukrej/devops-cv
+  
+  # Image version (avoid 'latest' in production for stability)
   tag: latest
+  
+  # Image pull policy:
+  # IfNotPresent → pull only if image is not already on node
   pullPolicy: IfNotPresent
 
 service:
+  # Service type:
+  # NodePort → exposes app on <NodeIP>:nodePort
   type: NodePort
+  
+  # Port on which service is exposed inside the cluster
   port: 80
+  
+  # External port accessible outside the cluster (range: 30000–32767)
   nodePort: 30007
 
 ingress:
+  # Enable ingress for domain-based routing (set true if using Ingress controller)
   enabled: false
+  
+  # Ingress class (e.g., nginx, traefik)
   className: ""
+  
+  # Hostname to access the application (used when ingress is enabled)
   host: cv.local
 
 resources:
+  # Resource limits (maximum allowed usage)
   limits:
-    cpu: 200m
-    memory: 256Mi
+    cpu: 200m        # Max CPU (0.2 core)
+    memory: 256Mi    # Max memory
+  
+  # Resource requests (minimum guaranteed resources)
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 100m        # Requested CPU (0.1 core)
+    memory: 128Mi    # Requested memory
 
 hpa:
+  # Enable Horizontal Pod Autoscaler
   enabled: true
+  
+  # Minimum number of pods
   minReplicas: 1
+  
+  # Maximum number of pods
   maxReplicas: 5
+  
+  # Target average CPU utilization (%) for scaling
   targetCPUUtilizationPercentage: 50
