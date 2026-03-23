@@ -11,7 +11,7 @@ env:
   ECR_REPOSITORY: devops-cv
   EKS_CLUSTER_NAME: devops-cv-cluster
   HELM_RELEASE: cv-release
-
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 jobs:
   deploy:
     runs-on: ubuntu-latest
