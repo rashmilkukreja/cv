@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  apache:
+    build: .
+    container_name: cv_apache
+    ports:
+      - "8080:80"
+    restart: unless-stopped

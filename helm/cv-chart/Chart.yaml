@@ -1,0 +1,6 @@
+apiVersion: v2
+name: cv-app
+description: Apache CV Website
+type: application
+version: 0.1.0
+appVersion: "1.0"
