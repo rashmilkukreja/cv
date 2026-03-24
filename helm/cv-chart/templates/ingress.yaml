@@ -3,11 +3,22 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: {{ include "cv-app.fullname" . }}
+  annotations:
+    # Forces the ALB to be public-facing
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    # CRITICAL: Routes traffic to the NodePort on your EC2 instances
+    alb.ingress.kubernetes.io/target-type: instance
+    # Optional: Groups multiple Ingresses onto one ALB to keep the URL stable
+    alb.ingress.kubernetes.io/group.name: my-app-group
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className | default "alb" }}
   rules:
-    - host: {{ .Values.ingress.host }}
+    {{- if .Values.ingress.host }}
+    - host: {{ .Values.ingress.host | quote }}
       http:
+    {{- else }}
+    - http:
+    {{- end }}
         paths:
           - path: /
             pathType: Prefix
