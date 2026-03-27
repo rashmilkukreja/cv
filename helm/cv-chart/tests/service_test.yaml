@@ -1,0 +1,16 @@
+suite: Service Tests
+templates:
+  - templates/service.yaml
+
+tests:
+  - it: should expose correct port
+    asserts:
+      - equal:
+          path: spec.ports[0].port
+          value: 80
+
+  - it: should have correct service type
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
