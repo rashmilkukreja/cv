@@ -1,62 +1,87 @@
-  name: Deploy to EKS
+name: Deploy to EKS
 
-  on:
-    push:
-      branches:
-        - main
+on:
+  push:
+    branches:
+      - main
 
-  env:
-    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-    AWS_REGION: ap-south-1
-    ECR_REPOSITORY: devops-cv
-    EKS_CLUSTER_NAME: eks
-    HELM_RELEASE: cv-release
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  jobs:
-    deploy:
-      runs-on: ubuntu-latest
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: devops-cv
+  EKS_CLUSTER_NAME: eks
+  HELM_RELEASE: cv-release
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-        # 🔐 Configure AWS
-        - name: Configure AWS credentials
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-            aws-region: ${{ secrets.AWS_REGION }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-        # 🐳 Login to ECR
-        - name: Login to Amazon ECR
-          id: login-ecr
-          uses: aws-actions/amazon-ecr-login@v2
+      # 📦 Setup Helm early (for testing)
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
 
-        # 🏗️ Build & Push Image
-        - name: Build, tag, and push image
-          env:
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-            IMAGE_TAG: ${{ github.sha }}
-          run: |
-            docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      # 🔍 Helm Lint
+      - name: Helm Lint
+        run: helm lint ./helm/cv-chart
 
-        # ⚙️ Update kubeconfig
-        - name: Update kubeconfig
-          run: |
-            aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+      # 🧪 Install helm-unittest plugin
+      - name: Install helm-unittest
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest
 
-        # 📦 Install Helm
-        - name: Setup Helm
-          uses: azure/setup-helm@v3
+      # 🧪 Run Helm Unit Tests
+      - name: Run Helm Tests
+        run: helm unittest ./helm/cv-chart
 
-        # 🔄 Deploy using Helm
-        - name: Deploy to EKS
-          env:
-            IMAGE_TAG: ${{ github.sha }}
-            ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          run: |
-            helm upgrade --install $HELM_RELEASE ./helm/cv-chart \
-              --set image.repository=$ECR_REGISTRY/$ECR_REPOSITORY \
-              --set image.tag=$IMAGE_TAG
+      # 📄 Render templates
+      - name: Render Helm Templates
+        run: helm template ./helm/cv-chart > rendered.yaml
+
+      # ☸️ Setup kubectl (for validation)
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      # ☸️ Validate manifests
+      - name: Kubernetes Dry Run
+        run: kubectl apply --dry-run=client -f rendered.yaml
+
+      # 🔐 Configure AWS
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # 🐳 Login to ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # 🏗️ Build & Push Image
+      - name: Build, tag, and push image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
+      # ⚙️ Update kubeconfig
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig --name $EKS_CLUSTER_NAME --region $AWS_REGION
+
+      # 🔄 Deploy using Helm
+      - name: Deploy to EKS
+        env:
+          IMAGE_TAG: ${{ github.sha }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          helm upgrade --install $HELM_RELEASE ./helm/cv-chart \
+            --set image.repository=$ECR_REGISTRY/$ECR_REPOSITORY \
+            --set image.tag=$IMAGE_TAG
