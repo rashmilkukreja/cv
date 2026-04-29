@@ -40,6 +40,7 @@
                         <li class="nav-item"><a class="nav-link smooth-scroll" href="#self-projects">Self-Projects</a></li>
                         <li class="nav-item"><a class="nav-link smooth-scroll" href="#Experience">Experience</a></li>
                         <li class="nav-item"><a class="nav-link smooth-scroll" href="#education">Education</a></li>
+                        <li class="nav-item"><a class="nav-link smooth-scroll" href="#reference">Certifications</a></li>
                         <li class="nav-item"><a class="nav-link smooth-scroll" href="#contact">Contact</a></li>
                      </ul>
                   </div>
@@ -58,7 +59,7 @@
                      <div class="cc-profile-image"><a href="#"><img src="images/rashmil.jpg" alt="Image"/></a></div>
                      <div class="h1 title">Rashmil Kukreja</div>
                      <p class="category text-white">
-                        🚀 Senior DevOps Engineer | Kubernetes | AWS | Terraform  
+                        🚀 Senior DevOps Engineer | CKA | KCNA | Terraform Certified
                         <br>
                         ⚡ Building Scalable Cloud Infrastructure & CI/CD Systems
                      </p>
@@ -193,97 +194,137 @@
          <div class="section" id="portfolio">
             <div class="container">
                <div class="row">
-                  <div class="col-md-6 ml-auto mr-auto">
-                     <div class="h4 text-center mb-5 title">Portfolio</div>
+                  <div class="col-md-8 ml-auto mr-auto">
+                     <div class="h4 text-center mb-3 title">Portfolio</div>
+                     <p class="portfolio-intro text-center">
+                        Production-focused DevOps and platform engineering work across Kubernetes, cloud automation, CI/CD, reliability, and observability.
+                     </p>
+                     <div class="portfolio-capabilities">
+                        <div>
+                           <i class="fa fa-server" aria-hidden="true"></i>
+                           <strong>Platform Engineering</strong>
+                           <span>Kubernetes, OKE, EKS, Helm</span>
+                        </div>
+                        <div>
+                           <i class="fa fa-code-fork" aria-hidden="true"></i>
+                           <strong>Delivery Automation</strong>
+                           <span>CI/CD, IaC, release governance</span>
+                        </div>
+                        <div>
+                           <i class="fa fa-line-chart" aria-hidden="true"></i>
+                           <strong>Reliability</strong>
+                           <span>Monitoring, alerting, recovery</span>
+                        </div>
+                     </div>
                      <div class="nav-align-center">
-                        <ul class="nav nav-pills nav-pills-primary" role="tablist">
-                           <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#Pegaprojects" role="tablist"><i class="fa fa-laptop" aria-hidden="true"></i></a></li>
-                           <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#projects1" role="tablist"><i class="fa fa-laptop" aria-hidden="true"></i></a></li>
-                           <!-- <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#future" role="tablist"><i class="fa fa-plane" aria-hidden="true"></i></a></li> -->
-                           <!-- <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#hobbies" role="tablist"><i class="fa fa-camera" aria-hidden="true"></i></a></li> -->
+                        <ul class="nav nav-pills nav-pills-primary portfolio-tabs" role="tablist">
+                           <li class="nav-item"><a class="nav-link" data-toggle="tab" href="#Pegaprojects" role="tab"><i class="fa fa-cubes" aria-hidden="true"></i> Pegasystems</a></li>
+                           <li class="nav-item"><a class="nav-link active" data-toggle="tab" href="#projects1" role="tab"><i class="fa fa-cloud" aria-hidden="true"></i> Oracle</a></li>
                         </ul>
                      </div>
                   </div>
                </div>
                <div class="tab-content gallery mt-5">
-                  <div class="tab-pane active" id="Pegaprojects">
-                     <div class="card" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
-                        <div class="row g-0">
-                           <div class="col-md-6"><img class="img-fluid" src="images/pro1.png" width="1000" height="500"/></a></div>
-                           <div class="col-md-6 d-flex align-items-center" data-aos="fade-left" data-aos-delay="100">
-                              <div class="m-4 mt-md-2">
-                                 <p class="text-teal text-small">Pegasystems</p>
-                                 <h5>Responsibilities</h5>
-                                 <p class="text-muted">
-                                 <p>•  I have DevOps practice for the microservice architecture using Kubernetes and orchestrated Docker Containers. Worked on several Docker components like Helm, Docker, Docker Compose, and Docker registry.</p>
-                                 <p>•  Created dashboards for customers for monitoring services getting deployed via pipelines.</p>
-                                 <p>•  Participating in Agile process and following Agile environment.</p>
-                                 <p>•  Have worked on database services AWS S3, AWS RDS and take automatic versioning on timestamo basis in case of loss of db</p>
-                                 <p>•  Tools used: OCI Stacks,OCI OKE cluster, Helm, Artifactory, Hudson, Jira etc</p>
-                                 </p>
+                  <div class="tab-pane" id="Pegaprojects">
+                     <div class="card portfolio-card">
+                        <div class="row no-gutters align-items-stretch">
+                           <div class="col-md-6 portfolio-media">
+                              <img class="img-fluid" src="images/pegasystems-release-platform.png" alt="Enterprise DevOps release engineering workspace"/>
+                           </div>
+                           <div class="col-md-6 d-flex align-items-center">
+                              <div class="portfolio-copy">
+                                 <p class="portfolio-company">Pegasystems</p>
+                                 <h5>Cloud Platform and Release Engineering</h5>
+                                 <ul class="portfolio-list">
+                                    <li>Owned Kubernetes-based delivery workflows for microservices using Helm, Docker, Docker Compose, and private image registries.</li>
+                                    <li>Standardized deployment visibility through service dashboards for pipeline status, release health, and customer-facing environments.</li>
+                                    <li>Automated Redshift backup and recovery workflows with AWS Lambda, S3 retention, SNS, and CloudFormation.</li>
+                                    <li>Integrated CI/CD failure notifications with WebEx and email reports so service owners could triage incidents with release context.</li>
+                                 </ul>
+                                 <div class="portfolio-stack">
+                                    <span>Helm</span>
+                                    <span>Kubernetes</span>
+                                    <span>AWS</span>
+                                    <span>Jenkins</span>
+                                    <span>CloudFormation</span>
+                                    <span>PowerBI</span>
+                                 </div>
                               </div>
                            </div>
                         </div>
-                        <div class="row g-0 portfolio-reverse">
-                           <div class="col-md-6 d-flex align-items-center" data-aos="fade-right" data-aos-delay="100">
-                              <div class="m-5 mt-md-2 text-end">
-                                 <!-- <p class="text-teal text-small">Pegasystems</p> -->
-                                 <h5>Projects</h5>
-                                 <p><b>•  Automatic Backup of Warehouse Cluster</b>Pegasystems uses Redshift cluster for its warehousing tool. So, we need to take manual snapshot of redshift
-                                    cluster in S3 bucket which retains in system for certain period depending upon date.Deployment of resources also needs to be automated using CloudFormation.
-                                    <b>Technologies/tools Used: Gradle, AWS Redshift, AWS Lambda, AWS SNS, AWS CloudFormation</b>
-                                 </p>
-                                 <p><b>•  WebEx notification in failures</b>Pegasystems team required pipeline to set WebEx notification to a space in case of failures in a specific format.
-                                    If pipeline fails, it should get all versions of services deployed since last successful build from warehouse and attach as attachment to email so that necessary step can be taken as soon as possible.
-                                    <b>Technologies/tools Used: Jenkins, WebEx, HTML, Outlook</b>
-                                 </p>
-                                 <p><b>•  Service Health Dashboard </b>Pegasystems switched dashboarding tool from ClicData to PowerBI tool as PowerBI is extremely powerful tool.
-                                    I took initiative to learn new tool along with all gateway setup required and gave KT to multiple teams and created dashboard from scratch which acted as game changer for internal teams.
-                                    <b>Technologies/tools Used: PowerBI, Redshift SDW</b>
-                                 </p>
+                        <div class="row no-gutters portfolio-reverse align-items-stretch">
+                           <div class="col-md-6 d-flex align-items-center">
+                              <div class="portfolio-copy portfolio-copy-right">
+                                 <p class="portfolio-company">Selected Outcomes</p>
+                                 <div class="portfolio-result">
+                                    <strong>Warehouse backup automation</strong>
+                                    <span>Replaced manual Redshift snapshot handling with scheduled AWS automation and retention-aware S3 storage.</span>
+                                 </div>
+                                 <div class="portfolio-result">
+                                    <strong>Release incident response</strong>
+                                    <span>Connected CI/CD failures to collaboration channels with deployment metadata for faster root-cause analysis.</span>
+                                 </div>
+                                 <div class="portfolio-result">
+                                    <strong>Service health dashboard</strong>
+                                    <span>Created PowerBI dashboards over warehouse data and enabled adoption across teams through structured knowledge transfer.</span>
+                                 </div>
                               </div>
                            </div>
-                           <div class="col-md-6"><img class="img-fluid" src="images/pro.jpeg" width="800" height="500"/></a></div>
+                           <div class="col-md-6 portfolio-media">
+                              <img class="img-fluid" src="images/pegasystems-recovery-platform.png" alt="Cloud release monitoring and backup automation"/>
+                           </div>
                         </div>
                      </div>
                   </div>
-                  <div class="tab-pane" id="projects1">
-                     <div class="card" data-aos="fade-up" data-aos-anchor-placement="top-bottom">
-                        <div class="row g-0">
-                           <div class="col-md-6"><img class="img-fluid" src="images/pro1.png" width="800" height="1500"/></a></div>
-                           <div class="col-md-6 d-flex align-items-center" data-aos="fade-left" data-aos-delay="100">
-                              <div class="m-4 mt-md-2">
-                                 <p class="text-teal text-small">Oracle</p>
-                                 <h5>Responsibilities</h5>
-                                 <p class="text-muted"> 
-                                 <p>•  Configured microservices for the microservice architecture using Kubernetes and orchestrated Docker Containers. Worked on several Docker components like Helm, Docker, Docker Compose, and Docker registry.</p>
-                                 <p>•  I have experience in cloud services and cloud platforms like oci, AWS. I have Hands-on experience on designing and implementing infrastructure using AWS,OCI.</p>
-                                 <p>•  Configured Auto scaling policies and configuration for the Production Environment.</p>
-                                 <p>•  OCI instance creation to support the testing environments like alpha,beta,gamma</p>
-                                 <p>•  Tools used: OCI Stacks,OCI OKE cluster, Helm, Docker Compose, jfrog Artifactory, Hudson, Jira etc</p>
-                                 </p>
+                  <div class="tab-pane active" id="projects1">
+                     <div class="card portfolio-card">
+                        <div class="row no-gutters align-items-stretch">
+                           <div class="col-md-6 portfolio-media">
+                              <img class="img-fluid" src="images/oracle-devops-platform.png" alt="Enterprise Kubernetes cloud platform operations"/>
+                           </div>
+                           <div class="col-md-6 d-flex align-items-center">
+                              <div class="portfolio-copy">
+                                 <p class="portfolio-company">Oracle</p>
+                                 <h5>Enterprise OKE Platform Engineering</h5>
+                                 <ul class="portfolio-list">
+                                    <li>Established standardized Kubernetes deployment patterns for Oracle microservices on OCI OKE using Helm charts, Docker images, and artifact repositories.</li>
+                                    <li>Built reusable platform configuration for alpha, beta, gamma, and production-aligned environments, reducing drift between release stages.</li>
+                                    <li>Implemented autoscaling, workload configuration, and operational guardrails to improve service resilience and deployment readiness.</li>
+                                    <li>Partnered with engineering teams to onboard services onto repeatable CI/CD workflows backed by observability and incident alerting.</li>
+                                 </ul>
+                                 <div class="portfolio-stack">
+                                    <span>OCI</span>
+                                    <span>OKE</span>
+                                    <span>Helm</span>
+                                    <span>Docker</span>
+                                    <span>CI/CD</span>
+                                    <span>Prometheus</span>
+                                    <span>Grafana</span>
+                                 </div>
                               </div>
                            </div>
                         </div>
-                        <div class="row g-0 portfolio-reverse">
-                           <div class="col-md-6 d-flex align-items-center" data-aos="fade-right" data-aos-delay="100">
-                              <div class="m-4 mt-md-2 text-end">
-                                 <p class="text-teal text-small">Oracle</p>
-                                 <h3>Projects</h3>
-                                 <p class="text-muted">
-                                 <p><b>• CI/CD deployment of Microservice in OKE cluster</b>
-                                    Oracle has microservices that needs to be deployed in OKE(k8s) cluster. Being devops lead, configured project with helm
-                                    configuration which can be deployed in OKE along with its ci-cd setup which is used as reference for whole org. 
-                                    <b>Technologies/tools Used: Docker, Docker Compose, Helm, OKE, FRE, Grafana</b>
-                                 </p>
-                                 <p><b>• Alerting Mechanism during pods downtime deployed in OKE cluster</b>Microservices deployed in OKE cluster were constantly going down during dev testing. Created alerting mechanism which
-                                    will notify in Slack channel created for Stakeholders in beta or gamma stages.
-                                    <b>Technologies/tools Used: Prometheus,Grafana,Alert Manager, Slack</b>
-                                 </p>
-                                 </p>
+                        <div class="row no-gutters portfolio-reverse align-items-stretch">
+                           <div class="col-md-6 d-flex align-items-center">
+                              <div class="portfolio-copy portfolio-copy-right">
+                                 <p class="portfolio-company">Selected Outcomes</p>
+                                 <div class="portfolio-result">
+                                    <strong>Reusable OKE delivery blueprint</strong>
+                                    <span>Created a Helm-based deployment reference that gave teams a consistent path for microservice onboarding and release automation.</span>
+                                 </div>
+                                 <div class="portfolio-result">
+                                    <strong>Operational visibility</strong>
+                                    <span>Integrated Prometheus, Grafana, Alertmanager, and Slack to surface pod failures and shorten feedback loops during validation.</span>
+                                 </div>
+                                 <div class="portfolio-result">
+                                    <strong>Release-stage consistency</strong>
+                                    <span>Improved deployment confidence by keeping pre-production environments aligned through controlled cloud provisioning and configuration reuse.</span>
+                                 </div>
                               </div>
                            </div>
-                           <div class="col-md-6"><img class="img-fluid" src="images/pro.jpeg" width="800" height="1500"/></a></div>
+                           <div class="col-md-6 portfolio-media">
+                              <img class="img-fluid" src="images/oracle-observability-platform.png" alt="Kubernetes observability and cloud infrastructure automation"/>
+                           </div>
                         </div>
                      </div>
                   </div>
@@ -372,7 +413,7 @@
                                           Integrated Formspree for contact form notifications.
                                        </p>
                                        <p><b>Tech:</b> AWS S3, Route53, Bootstrap, Formspree</p>
-                                       <a href="http://rashmilkukreja.in" target="_blank">Visit Website</a>
+                                       <a href="https://rashmilkukreja.in" target="_blank">Visit Website</a>
                                     </div>
                                  </div>
                                  <div class="col-md-6">
@@ -530,6 +571,20 @@
             <div class="section" id="reference">
                <div class="container">
                   <div class="h4 text-center mb-3 title">Certifications</div>
+                  <div class="certification-highlights" data-aos="fade-up">
+                     <div class="certification-pill">
+                        <img src="images/kcna.png" alt="CKA"/>
+                        <span>Certified Kubernetes Administrator</span>
+                     </div>
+                     <div class="certification-pill">
+                        <img src="images/kcna.png" alt="KCNA"/>
+                        <span>Kubernetes and Cloud Native Associate</span>
+                     </div>
+                     <div class="certification-pill">
+                        <img src="images/terraform.png" alt="Terraform"/>
+                        <span>HashiCorp Terraform Associate</span>
+                     </div>
+                  </div>
                   <div class="row">
                      <div class="col-md-6 ml-auto mr-auto">
                         <div class="nav-align-center">
@@ -550,10 +605,33 @@
                                     <li data-target="#cc-Indicators" data-slide-to="1"></li>
                                     <li data-target="#cc-Indicators" data-slide-to="2"></li>
                                     <li data-target="#cc-Indicators" data-slide-to="3"></li>
+                                    <li data-target="#cc-Indicators" data-slide-to="4"></li>
+                                    <li data-target="#cc-Indicators" data-slide-to="5"></li>
                                  </ol>
                                  <div class="carousel-inner">
-                                    <!-- Terraform -->
+                                    <!-- CKA -->
                                     <div class="carousel-item active">
+                                       <div class="row">
+                                          <div class="col-lg-2 col-md-3 cc-reference-header">
+                                             <img src="images/kcna.png" alt="CKA"/>
+                                             <div class="h5 pt-2">CNCF</div>
+                                             <p class="category">CKA</p>
+                                          </div>
+                                          <div class="col-lg-10 col-md-9">
+                                             <p><b>Certified Kubernetes Administrator (CKA)</b></p>
+                                             <p>
+                                                Validates hands-on Kubernetes administration skills, including
+                                                cluster architecture, workloads, services, networking,
+                                                storage, troubleshooting, and security.
+                                             </p>
+                                             <p>
+                                                <a href="https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/" target="_blank">Details</a>
+                                             </p>
+                                          </div>
+                                       </div>
+                                    </div>
+                                    <!-- Terraform -->
+                                    <div class="carousel-item">
                                        <div class="row">
                                           <div class="col-lg-2 col-md-3 cc-reference-header">
                                              <img src="images/terraform.png" alt="Terraform"/>
