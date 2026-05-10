@@ -3,10 +3,10 @@
     <img src="https://readme-typing-svg.herokuapp.com/?font=Righteous&size=35&center=true&vCenter=true&width=500&height=70&duration=4000&lines=Hi+There!+👋;+I'm+Rashmil+Kukreja!;" />
 </h1>
 
-<h3 align="center">Senior DevOps Engineer | Cloud & Automation Enthusiast</h3>
+<h3 align="center">Senior DevOps Engineer | CKA | KCNA | Terraform Certified</h3>
 
 <p align="center">
-  <a href="https://linkedin.com/in/rashmilkukreja" target="_blank">
+  <a href="https://www.linkedin.com/in/rashmilkukreja/" target="_blank">
     <img src="https://img.shields.io/badge/LinkedIn-Rashmil_Kukreja-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"/>
   </a>
   <a href="https://medium.com/@rashmil.kukreja" target="_blank">
@@ -26,6 +26,17 @@
 - 📝 I write technical articles on Medium
 - 💬 Ask me about DevOps, Containers, CI/CD, and Cloud
 - 📫 Reach me at: **rashmil.kukreja@gmail.com**
+
+---
+
+## 🏆 Certifications
+
+- **Certified Kubernetes Administrator (CKA)** — CNCF / Linux Foundation
+- **Kubernetes and Cloud Native Associate (KCNA)** — CNCF / Linux Foundation
+- **HashiCorp Terraform Associate (003)** — HashiCorp
+- **Oracle Cloud Infrastructure Foundations Associate (2023)** — Oracle
+- **Oracle Certified Java Programmer (OCJP 7)** — Oracle
+- **Pega Certified System Architect (PCSA 8.4)** — Pega
 
 ---
 

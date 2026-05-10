@@ -20,3 +20,10 @@ spec:
             - containerPort: 80
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
+        - name: apache-exporter
+          image: lusotycoon/apache-exporter:latest
+          args:
+          - "--scrape_uri=http://localhost/server-status?auto"
+          ports:
+          - name: metrics
+          containerPort: 9117

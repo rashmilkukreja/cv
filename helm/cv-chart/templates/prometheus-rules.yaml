@@ -1,0 +1,59 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cv-app-alerts
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: cv-app.rules
+      rules:
+        # 🔴 Apache Down
+        - alert: ApacheDown
+          expr: apache_up == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Apache is down"
+            description: "Apache instance has been down for more than 1 minute."
+
+        # ⚠️ High Traffic
+        - alert: HighTraffic
+          expr: rate(apache_accesses_total[1m]) > 50
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High traffic detected"
+            description: "Request rate is above 50 req/sec."
+
+        # ⚠️ High Bandwidth Usage
+        - alert: HighBandwidth
+          expr: rate(apache_sent_kilobytes_total[1m]) > 1000
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High bandwidth usage"
+            description: "Apache is sending more than 1000 KB/sec."
+
+        # ⚠️ Too Many Busy Workers
+        - alert: TooManyBusyWorkers
+          expr: apache_workers{state="busy"} > 50
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Too many busy workers"
+            description: "Apache has too many busy workers."
+
+        # ⚠️ No Idle Workers (possible overload)
+        - alert: NoIdleWorkers
+          expr: apache_workers{state="idle"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "No idle workers available"
+            description: "All Apache workers are busy. Possible overload."
