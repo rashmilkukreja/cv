@@ -2,6 +2,8 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "cv-app.fullname" . }}
+  labels:
+    app: cv-app
 spec:
   type: {{ .Values.service.type }}
   selector:

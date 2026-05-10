@@ -5429,6 +5429,14 @@ Created using IcoMoon - icomoon.io
 }
 
 /* Professional Skills Style */
+#skill .progress-container {
+  min-height: 64px; }
+
+#skill .progress-container .progress-badge {
+  display: block;
+  line-height: 1.35;
+  padding-right: 56px; }
+
 .progress-container {
   margin-bottom: 20px;
   font-size: 18px; }
