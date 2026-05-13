@@ -25,5 +25,7 @@ spec:
           args:
           - "--scrape_uri=http://localhost/server-status?auto"
           ports:
-          - name: metrics
-          containerPort: 9117
+            - name: metrics
+              containerPort: 9117
+          resources:
+            {{- toYaml .Values.exporter.resources | nindent 12 }}

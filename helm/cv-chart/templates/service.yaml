@@ -9,6 +9,12 @@ spec:
   selector:
     app: {{ include "cv-app.name" . }}
   ports:
-    - port: {{ .Values.service.port }}
+    - name: http
+      port: {{ .Values.service.port }}
       targetPort: 80
+      {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePort }}
       nodePort: {{ .Values.service.nodePort }}
+      {{- end }}
+    - name: metrics
+      port: 9117
+      targetPort: metrics

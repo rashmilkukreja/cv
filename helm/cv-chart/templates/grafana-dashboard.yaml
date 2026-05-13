@@ -49,7 +49,7 @@ data:
           "targets": [
             {
               "expr": "apache_workers",
-              "legendFormat": "{{state}}",
+              "legendFormat": "{{`{{state}}`}}",
               "refId": "D"
             }
           ]
@@ -61,7 +61,7 @@ data:
           "targets": [
             {
               "expr": "apache_scoreboard",
-              "legendFormat": "{{state}}",
+              "legendFormat": "{{`{{state}}`}}",
               "refId": "E"
             }
           ]

@@ -44,6 +44,15 @@ resources:
     cpu: 100m        # Requested CPU (0.1 core)
     memory: 128Mi    # Requested memory
 
+exporter:
+  resources:
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 50m
+      memory: 64Mi
+
 hpa:
   # Enable Horizontal Pod Autoscaler
   enabled: true

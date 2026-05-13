@@ -1,34 +1,115 @@
-name: CI-CD Pipeline
+name: CI/CD Deploy to EKS
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  IMAGE_NAME: devops-cv
-  DOCKERHUB_USERNAME: rakukrej
-  HELM_RELEASE: cv-release
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  AWS_REGION: ap-south-1
+  EKS_CLUSTER_NAME: eks
+  HELM_RELEASE: cv
+  HELM_NAMESPACE: cv
+  CHART_PATH: ./helm/cv-chart
+  IMAGE_REPOSITORY: rakukrej/devops-cv
+
+permissions:
+  contents: read
+
 jobs:
-  build-and-push:
+  build-test-deploy:
+    name: Build, Test, and Deploy
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Login to DockerHub
+      - name: Set image tag
+        id: image
+        run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build Docker image
-        run: |
-          docker build -t $DOCKERHUB_USERNAME/$IMAGE_NAME:latest .
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_REPOSITORY }}:${{ steps.image.outputs.tag }}
+            ${{ env.IMAGE_REPOSITORY }}:latest
 
-      - name: Push Docker image
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+
+      - name: Add Helm repositories
+        run: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+
+      - name: Build Helm dependencies
+        run: helm dependency build "$CHART_PATH"
+
+      - name: Helm lint
+        run: helm lint "$CHART_PATH"
+
+      - name: Install helm-unittest
+        run: helm plugin install https://github.com/helm-unittest/helm-unittest --verify=false
+
+      - name: Run Helm unit tests
+        run: helm unittest "$CHART_PATH"
+
+      - name: Render Helm chart
         run: |
-          docker push $DOCKERHUB_USERNAME/$IMAGE_NAME:latest
+          helm template "$HELM_RELEASE" "$CHART_PATH" \
+            --namespace "$HELM_NAMESPACE" \
+            --set image.repository="${IMAGE_REPOSITORY}" \
+            --set image.tag="${{ steps.image.outputs.tag }}" \
+            --set ingress.enabled=true \
+            --set ingress.host="" \
+            > rendered.yaml
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
+
+      - name: Ensure metrics-server
+        run: |
+          helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
+          helm upgrade --install metrics-server metrics-server/metrics-server \
+            --namespace kube-system \
+            --wait \
+            --timeout 5m
+
+      - name: Deploy Helm chart
+        run: |
+          helm upgrade --install "$HELM_RELEASE" "$CHART_PATH" \
+            --namespace "$HELM_NAMESPACE" \
+            --create-namespace \
+            --set image.repository="${IMAGE_REPOSITORY}" \
+            --set image.tag="${{ steps.image.outputs.tag }}" \
+            --set ingress.enabled=true \
+            --set ingress.host="" \
+            --wait \
+            --timeout 15m
+
+      - name: Show deployment status
+        run: |
+          kubectl rollout status deployment/${HELM_RELEASE}-cv-app -n "$HELM_NAMESPACE" --timeout=180s
+          kubectl get pods,svc,ingress,hpa -n "$HELM_NAMESPACE"

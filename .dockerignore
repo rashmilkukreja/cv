@@ -1,0 +1,6 @@
+.git
+.github
+helm/cv-chart/charts
+helm/cv-chart/Chart.lock
+DS_Store
+**/DS_Store
