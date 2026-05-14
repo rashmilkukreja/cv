@@ -4,22 +4,26 @@ kind: Ingress
 metadata:
   name: {{ include "cv-app.fullname" . }}
   annotations:
-    # Forces the ALB to be public-facing
+    # Create an internet-facing AWS Application Load Balancer.
     alb.ingress.kubernetes.io/scheme: internet-facing
-    # CRITICAL: Routes traffic to the NodePort on your EC2 instances
+    # Route ALB traffic to worker node NodePorts, matching service.type NodePort.
     alb.ingress.kubernetes.io/target-type: instance
-    # Optional: Groups multiple Ingresses onto one ALB to keep the URL stable
+    # Reuse the same ALB group name if multiple app ingresses are added later.
     alb.ingress.kubernetes.io/group.name: my-app-group
 spec:
+  # Defaults to AWS Load Balancer Controller when no class is provided.
   ingressClassName: {{ .Values.ingress.className | default "alb" }}
   rules:
     {{- if .Values.ingress.host }}
+    # Host-based routing for a real DNS name.
     - host: {{ .Values.ingress.host | quote }}
       http:
     {{- else }}
+    # Hostless routing allows direct access through the generated ALB DNS name.
     - http:
     {{- end }}
         paths:
+          # Send all paths to the CV app Service.
           - path: /
             pathType: Prefix
             backend:

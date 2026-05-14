@@ -1,0 +1,32 @@
+suite: RBAC Tests
+templates:
+  - templates/rbac.yaml
+  - templates/deployment.yaml
+
+tests:
+  - it: should create a dedicated service account
+    template: templates/rbac.yaml
+    documentIndex: 0
+    asserts:
+      - isKind:
+          of: ServiceAccount
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-cv-app
+
+  - it: should bind the role to the app service account
+    template: templates/rbac.yaml
+    documentIndex: 2
+    asserts:
+      - isKind:
+          of: RoleBinding
+      - equal:
+          path: subjects[0].name
+          value: RELEASE-NAME-cv-app
+
+  - it: should run the deployment with the app service account
+    template: templates/deployment.yaml
+    asserts:
+      - equal:
+          path: spec.template.spec.serviceAccountName
+          value: RELEASE-NAME-cv-app

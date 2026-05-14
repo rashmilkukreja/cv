@@ -3,11 +3,14 @@ kind: ServiceMonitor
 metadata:
   name: cv-app
   labels:
+    # kube-prometheus-stack discovers ServiceMonitors through this release label.
     release: kube-prometheus-stack
 spec:
+  # Select the app Service that exposes the named metrics port.
   selector:
     matchLabels:
       app: cv-app
   endpoints:
+    # Scrape apache-exporter every 15 seconds.
     - port: metrics
       interval: 15s

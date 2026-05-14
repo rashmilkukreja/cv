@@ -3,13 +3,14 @@ kind: ConfigMap
 metadata:
   name: cv-app-dashboard
   labels:
+    # Grafana sidecar imports ConfigMaps with this label as dashboards.
     grafana_dashboard: "1"
 data:
+  # Dashboard panels use apache-exporter metrics scraped by Prometheus.
   cv-app-dashboard.json: |
     {
       "title": "Apache CV App Dashboard",
       "panels": [
-
         {
           "type": "stat",
           "title": "Apache Status",
@@ -20,7 +21,6 @@ data:
             }
           ]
         },
-
         {
           "type": "graph",
           "title": "Requests per Second",
@@ -31,7 +31,6 @@ data:
             }
           ]
         },
-
         {
           "type": "graph",
           "title": "Traffic (KB/sec)",
@@ -42,7 +41,6 @@ data:
             }
           ]
         },
-
         {
           "type": "graph",
           "title": "Worker Status",
@@ -54,7 +52,6 @@ data:
             }
           ]
         },
-
         {
           "type": "graph",
           "title": "Scoreboard",
@@ -66,7 +63,6 @@ data:
             }
           ]
         }
-
       ],
       "schemaVersion": 16,
       "version": 1

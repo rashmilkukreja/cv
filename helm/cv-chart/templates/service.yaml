@@ -3,18 +3,23 @@ kind: Service
 metadata:
   name: {{ include "cv-app.fullname" . }}
   labels:
-    app: cv-app
+    app: {{ include "cv-app.name" . }}
 spec:
+  # NodePort is used with ALB target-type instance; other types can be set in values.
   type: {{ .Values.service.type }}
+  # Route Service traffic to pods created by the Deployment.
   selector:
     app: {{ include "cv-app.name" . }}
   ports:
+    # Public application traffic.
     - name: http
       port: {{ .Values.service.port }}
       targetPort: 80
       {{- if and (eq .Values.service.type "NodePort") .Values.service.nodePort }}
+      # Fixed NodePort keeps the ALB target wiring predictable.
       nodePort: {{ .Values.service.nodePort }}
       {{- end }}
+    # Prometheus scrape traffic for the Apache exporter sidecar.
     - name: metrics
       port: 9117
       targetPort: metrics

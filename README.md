@@ -87,6 +87,126 @@
 
 ---
 
+## 🚢 CI/CD and Kubernetes Deployment
+
+This repository deploys the CV website to an AWS EKS cluster using GitHub Actions and Helm.
+
+- Workflow: `.github/workflows/ci-cd.yaml`
+- Trigger: push to `main` or manual `workflow_dispatch`
+- Image: `rakukrej/devops-cv:<git-sha>`
+- Helm release: `cv`
+- Namespace: `cv`
+- EKS cluster: `eks`
+- AWS region: `ap-south-1`
+- Ingress: AWS Load Balancer Controller with an internet-facing ALB
+
+Current public application URL:
+
+```bash
+http://k8s-myappgroup-430fe4898e-912724151.ap-south-1.elb.amazonaws.com
+```
+
+Check the live ingress hostname:
+
+```bash
+kubectl get ingress cv-cv-app -n cv
+```
+
+Check deployment status:
+
+```bash
+kubectl get pods,svc,ingress,hpa -n cv
+kubectl rollout status deployment/cv-cv-app -n cv
+```
+
+---
+
+## 📊 Grafana Access
+
+Grafana is installed through `kube-prometheus-stack` as part of the Helm chart.
+
+Port-forward Grafana locally:
+
+```bash
+kubectl port-forward svc/cv-grafana -n cv 3000:80
+```
+
+Open Grafana:
+
+```bash
+http://localhost:3000
+```
+
+Login credentials:
+
+```text
+Username: admin
+Password: admin
+```
+
+The custom dashboard is loaded from the Helm chart ConfigMap:
+
+```bash
+kubectl get configmap cv-app-dashboard -n cv
+```
+
+Grafana health endpoint:
+
+```bash
+curl http://localhost:3000/api/health
+```
+
+---
+
+## 📈 Metrics and Health Endpoints
+
+Application health check:
+
+```bash
+curl -I http://k8s-myappgroup-430fe4898e-912724151.ap-south-1.elb.amazonaws.com
+```
+
+Apache status endpoint:
+
+```bash
+curl http://k8s-myappgroup-430fe4898e-912724151.ap-south-1.elb.amazonaws.com/server-status?auto
+```
+
+Apache exporter metrics are exposed inside the cluster on service port `9117`.
+
+Port-forward exporter metrics:
+
+```bash
+kubectl port-forward svc/cv-cv-app -n cv 9117:9117
+curl http://localhost:9117/metrics
+```
+
+Prometheus is available inside the cluster through `cv-kube-prometheus-stack-prometheus`.
+
+Port-forward Prometheus:
+
+```bash
+kubectl port-forward svc/cv-kube-prometheus-stack-prometheus -n cv 9090:9090
+```
+
+Prometheus endpoints:
+
+```bash
+curl http://localhost:9090/-/healthy
+curl http://localhost:9090/-/ready
+curl "http://localhost:9090/api/v1/query?query=apache_up"
+```
+
+Useful Kubernetes checks:
+
+```bash
+kubectl get servicemonitor,prometheusrule -n cv
+kubectl top pods -n cv
+kubectl get hpa cv-cv-app -n cv
+```
+
+---
+
 <p align="center">
   ⭐ If you like my work, consider giving a star to my repositories!
 </p>
