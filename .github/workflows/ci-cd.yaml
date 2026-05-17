@@ -1,13 +1,19 @@
 name: CI/CD Deploy to EKS
 
+# Runs the full production path for this CV app:
+# build Docker image, validate Helm, authenticate to AWS, and deploy to EKS.
 on:
   push:
+    # Keep production deploys tied to the protected main branch.
     branches:
       - main
+  # Allows manual redeploys from the GitHub Actions UI.
   workflow_dispatch:
 
 env:
+  # GitHub-hosted runners currently need this for newer JavaScript action runtimes.
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # Shared deployment settings used by AWS, kubectl, and Helm steps below.
   AWS_REGION: ap-south-1
   AWS_ROLE_TO_ASSUME: arn:aws:iam::227037544501:role/GitHubActionsEksDeploy
   EKS_CLUSTER_NAME: eks
@@ -17,7 +23,9 @@ env:
   IMAGE_REPOSITORY: rakukrej/devops-cv
 
 permissions:
+  # Required for checkout and repository read operations.
   contents: read
+  # Required for GitHub OIDC federation into AWS; avoids long-lived AWS keys.
   id-token: write
 
 jobs:
@@ -31,6 +39,7 @@ jobs:
 
       - name: Set image tag
         id: image
+        # Use a short immutable Git SHA tag so every deployment maps back to source.
         run: echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
 
       - name: Set up Docker Buildx
@@ -39,6 +48,7 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
         with:
+          # Stored as GitHub repository secrets, not committed to source control.
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
@@ -47,6 +57,7 @@ jobs:
         with:
           context: .
           push: true
+          # Publish both an immutable release tag and latest for convenience.
           tags: |
             ${{ env.IMAGE_REPOSITORY }}:${{ steps.image.outputs.tag }}
             ${{ env.IMAGE_REPOSITORY }}:latest
@@ -55,21 +66,26 @@ jobs:
         uses: azure/setup-helm@v4
 
       - name: Add Helm repositories
+        # Dependency chart is used for Prometheus/Grafana observability.
         run: helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 
       - name: Build Helm dependencies
+        # Downloads chart dependencies listed in Chart.yaml before lint/test/render.
         run: helm dependency build "$CHART_PATH"
 
       - name: Helm lint
+        # Static validation catches template and chart metadata issues early.
         run: helm lint "$CHART_PATH"
 
       - name: Install helm-unittest
+        # Unit tests validate rendered Kubernetes manifests without touching a cluster.
         run: helm plugin install https://github.com/helm-unittest/helm-unittest --verify=false
 
       - name: Run Helm unit tests
         run: helm unittest "$CHART_PATH"
 
       - name: Render Helm chart
+        # Render manifests once in CI to catch templating errors before deploying.
         run: |
           helm template "$HELM_RELEASE" "$CHART_PATH" \
             --namespace "$HELM_NAMESPACE" \
@@ -82,6 +98,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
+          # Assumes AWS role through OIDC instead of static AWS access keys.
           role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ env.AWS_REGION }}
 
@@ -89,9 +106,11 @@ jobs:
         uses: azure/setup-kubectl@v4
 
       - name: Update kubeconfig
+        # Writes temporary cluster access config for this runner.
         run: aws eks update-kubeconfig --name "$EKS_CLUSTER_NAME" --region "$AWS_REGION"
 
       - name: Ensure metrics-server
+        # HPA requires metrics-server to read pod CPU utilization.
         run: |
           helm repo add metrics-server https://kubernetes-sigs.github.io/metrics-server/
           helm upgrade --install metrics-server metrics-server/metrics-server \
@@ -100,6 +119,7 @@ jobs:
             --timeout 5m
 
       - name: Deploy Helm chart
+        # Atomic-ish upgrade path: Helm waits for Kubernetes resources to become ready.
         run: |
           helm upgrade --install "$HELM_RELEASE" "$CHART_PATH" \
             --namespace "$HELM_NAMESPACE" \
@@ -112,6 +132,7 @@ jobs:
             --timeout 15m
 
       - name: Show deployment status
+        # Final smoke check gives clear rollout and service visibility in job logs.
         run: |
           kubectl rollout status deployment/${HELM_RELEASE}-cv-app -n "$HELM_NAMESPACE" --timeout=180s
           kubectl get pods,svc,ingress,hpa -n "$HELM_NAMESPACE"

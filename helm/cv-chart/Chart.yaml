@@ -1,11 +1,16 @@
 apiVersion: v2
 name: cv-app
+# Helm chart for deploying the Apache-hosted CV website to Kubernetes.
 description: Apache CV Website
+# Application charts render Kubernetes resources; they are installed as releases.
 type: application
+# Chart version should change when Kubernetes templates or values change.
 version: 0.1.0
+# App version represents the website/application version, not the chart version.
 appVersion: "1.0"
 icon: https://upload.wikimedia.org/wikipedia/commons/7/7e/Apache_Feather_Logo.svg
 dependencies:
+  # Observability stack used for Prometheus metrics, Grafana dashboards, and alerts.
   - name: kube-prometheus-stack
     version: 58.3.1
     repository: https://prometheus-community.github.io/helm-charts

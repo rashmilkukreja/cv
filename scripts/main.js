@@ -1,14 +1,12 @@
-// Add your javascript here
-// Don't forget to add it into respective layouts where this js file is needed
-
 $(document).ready(function() {
+  // Initialize Animate On Scroll for sections that still use data-aos attributes.
   AOS.init( {
     // uncomment below for on-scroll animations to played only once
     // once: true  
   }); // initialize animate on scroll library
 });
 
-// Smooth scroll for links with hashes
+// Smooth-scroll internal navigation links such as About, Portfolio, and Contact.
 $('a.smooth-scroll')
 .click(function(event) {
   // On-page links
@@ -27,8 +25,7 @@ $('a.smooth-scroll')
       $('html, body').animate({
         scrollTop: target.offset().top
       }, 1000, function() {
-        // Callback after animation
-        // Must change focus!
+        // Move focus after scrolling so keyboard and screen-reader users keep context.
         var $target = $(target);
         $target.focus();
         if ($target.is(":focus")) { // Checking if the target was focused

@@ -1,6 +1,9 @@
 name: Deploy to EKS
 
+# Compatibility workflow kept for anyone looking for the old deploy entrypoint.
+# The actual build/test/deploy pipeline now lives in ci-cd.yaml.
 on:
+  # Manual only, so this file does not accidentally deploy stale behavior.
   workflow_dispatch:
 
 jobs:
@@ -9,4 +12,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Deployment workflow moved
+        # Fail-safe pointer instead of duplicating deployment logic in two workflows.
         run: echo "Use .github/workflows/ci-cd.yaml for the full build, test, and EKS deployment pipeline."

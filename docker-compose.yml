@@ -2,8 +2,12 @@ version: '3.8'
 
 services:
   apache:
+    # Build the same Apache image used by the CI/CD pipeline.
     build: .
+    # Stable local container name for quick debugging.
     container_name: cv_apache
     ports:
+      # Visit http://localhost:8080 to test the static CV locally.
       - "8080:80"
+    # Restart locally after Docker restarts unless explicitly stopped.
     restart: unless-stopped

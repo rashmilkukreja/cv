@@ -1,10 +1,12 @@
 suite: RBAC Tests
+# RBAC tests verify the app avoids default broad permissions.
 templates:
   - templates/rbac.yaml
   - templates/deployment.yaml
 
 tests:
   - it: should create a dedicated service account
+    # First document from rbac.yaml is the ServiceAccount when creation is enabled.
     template: templates/rbac.yaml
     documentIndex: 0
     asserts:
@@ -15,6 +17,7 @@ tests:
           value: RELEASE-NAME-cv-app
 
   - it: should bind the role to the app service account
+    # Third document is the RoleBinding that connects Role permissions to the app.
     template: templates/rbac.yaml
     documentIndex: 2
     asserts:
@@ -25,6 +28,7 @@ tests:
           value: RELEASE-NAME-cv-app
 
   - it: should run the deployment with the app service account
+    # Deployment should use the chart-managed ServiceAccount, not Kubernetes default.
     template: templates/deployment.yaml
     asserts:
       - equal:

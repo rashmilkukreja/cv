@@ -89,6 +89,7 @@
 
 ## 🚢 CI/CD and Kubernetes Deployment
 
+<!-- This section documents the production deployment flow for reviewers and recruiters. -->
 This repository deploys the CV website to an AWS EKS cluster using GitHub Actions and Helm.
 
 - Workflow: `.github/workflows/ci-cd.yaml`
@@ -123,6 +124,7 @@ kubectl rollout status deployment/cv-cv-app -n cv
 
 ## 📊 Grafana Access
 
+<!-- Grafana is installed by the Helm dependency and loaded with the dashboard ConfigMap. -->
 Grafana is installed through `kube-prometheus-stack` as part of the Helm chart.
 
 Port-forward Grafana locally:
@@ -160,6 +162,7 @@ curl http://localhost:3000/api/health
 
 ## 📈 Metrics and Health Endpoints
 
+<!-- These commands validate the app, exporter, Prometheus, and Kubernetes autoscaling signals. -->
 Application health check:
 
 ```bash

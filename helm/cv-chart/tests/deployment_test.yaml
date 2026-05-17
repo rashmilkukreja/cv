@@ -1,10 +1,12 @@
 suite: Deployment Tests
+# Unit tests validate the rendered Deployment before CI/CD applies it to EKS.
 templates:
   - templates/deployment.yaml
 
 tests:
   - it: should have correct replica count
     set:
+      # Override replicas to prove values.yaml controls the rendered manifest.
       replicaCount: 3
     asserts:
       - equal:
@@ -14,11 +16,13 @@ tests:
   - it: should use correct image
     asserts:
       - equal:
+          # Default image comes from values.yaml and can be overridden in CI.
           path: spec.template.spec.containers[0].image
           value: rakukrej/devops-cv:latest
 
   - it: should set resources for the apache exporter sidecar
     asserts:
       - equal:
+          # Exporter resource requests are required for predictable pod scheduling.
           path: spec.template.spec.containers[1].resources.requests.cpu
           value: 50m
