@@ -3,12 +3,13 @@ kind: PrometheusRule
 metadata:
   name: cv-app-alerts
   labels:
+    # kube-prometheus-stack loads PrometheusRule objects with this release label.
     release: kube-prometheus-stack
 spec:
   groups:
     - name: cv-app.rules
       rules:
-        # 🔴 Apache Down
+        # Alert when the exporter reports that Apache is unavailable.
         - alert: ApacheDown
           expr: apache_up == 0
           for: 1m
@@ -17,8 +18,7 @@ spec:
           annotations:
             summary: "Apache is down"
             description: "Apache instance has been down for more than 1 minute."
-
-        # ⚠️ High Traffic
+        # Alert when request volume is higher than the expected threshold.
         - alert: HighTraffic
           expr: rate(apache_accesses_total[1m]) > 50
           for: 2m
@@ -27,8 +27,7 @@ spec:
           annotations:
             summary: "High traffic detected"
             description: "Request rate is above 50 req/sec."
-
-        # ⚠️ High Bandwidth Usage
+        # Alert when Apache sends more traffic than expected.
         - alert: HighBandwidth
           expr: rate(apache_sent_kilobytes_total[1m]) > 1000
           for: 2m
@@ -37,8 +36,7 @@ spec:
           annotations:
             summary: "High bandwidth usage"
             description: "Apache is sending more than 1000 KB/sec."
-
-        # ⚠️ Too Many Busy Workers
+        # Alert when too many Apache workers are busy serving requests.
         - alert: TooManyBusyWorkers
           expr: apache_workers{state="busy"} > 50
           for: 2m
@@ -47,8 +45,7 @@ spec:
           annotations:
             summary: "Too many busy workers"
             description: "Apache has too many busy workers."
-
-        # ⚠️ No Idle Workers (possible overload)
+        # Alert when all workers are busy and Apache may be overloaded.
         - alert: NoIdleWorkers
           expr: apache_workers{state="idle"} == 0
           for: 1m

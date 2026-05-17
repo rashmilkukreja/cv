@@ -4,13 +4,16 @@ kind: HorizontalPodAutoscaler
 metadata:
   name: {{ include "cv-app.fullname" . }}
 spec:
+  # Scale the CV app Deployment, not the monitoring stack.
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: {{ include "cv-app.fullname" . }}
+  # Boundaries protect the app from scaling below availability or above budget.
   minReplicas: {{ .Values.hpa.minReplicas }}
   maxReplicas: {{ .Values.hpa.maxReplicas }}
   metrics:
+    # Requires metrics-server and CPU requests on every container in the pod.
     - type: Resource
       resource:
         name: cpu

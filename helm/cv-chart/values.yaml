@@ -1,50 +1,64 @@
-# Number of pod replicas to run initially
+# Initial pod count before the HorizontalPodAutoscaler adjusts replicas.
 replicaCount: 1
 
 image:
-  # Docker image repository (Docker Hub / private registry)
+  # Docker image repository for the Apache CV website container.
   repository: rakukrej/devops-cv
-  
-  # Image version (avoid 'latest' in production for stability)
+  # Image version. Pin a specific tag for production releases.
   tag: latest
-  
-  # Image pull policy:
-  # IfNotPresent → pull only if image is not already on node
+  # Pull only when the image is not already present on the node.
   pullPolicy: IfNotPresent
 
 service:
-  # Service type:
-  # NodePort → exposes app on <NodeIP>:nodePort
+  # NodePort works with AWS ALB target-type instance.
   type: NodePort
-  
-  # Port on which service is exposed inside the cluster
+  # Cluster-internal Service port for application traffic.
   port: 80
-  
-  # External port accessible outside the cluster (range: 30000–32767)
+  # Fixed node port exposed on worker nodes. Valid range is 30000-32767.
   nodePort: 30007
 
 ingress:
-  # Enable ingress for domain-based routing (set true if using Ingress controller)
+  # Enable AWS ALB Ingress creation.
   enabled: false
-  
-  # Ingress class (e.g., nginx, traefik)
+  # Ingress class. Empty defaults to "alb" in the template.
   className: ""
-  
-  # Hostname to access the application (used when ingress is enabled)
+  # Hostname for DNS-based access. Set to "" to use the ALB DNS name directly.
   host: cv.local
 
+serviceAccount:
+  # Create a dedicated Kubernetes ServiceAccount for the CV app pods.
+  create: true
+  # Optional custom ServiceAccount name. Empty means "<release-name>-cv-app".
+  name: ""
+  # Optional annotations, for example an EKS IRSA role annotation.
+  annotations: {}
+  # Keep the Kubernetes API token out of the pod unless the app needs it.
+  automountServiceAccountToken: false
+
+rbac:
+  # Create a namespace-scoped Role and RoleBinding for the app ServiceAccount.
+  create: true
+  # Read-only permissions for operational discovery inside the release namespace.
+  rules:
+    - apiGroups: [""]
+      resources: ["pods", "services", "endpoints", "configmaps"]
+      verbs: ["get", "list", "watch"]
+    - apiGroups: ["apps"]
+      resources: ["deployments", "replicasets"]
+      verbs: ["get", "list", "watch"]
+
 resources:
-  # Resource limits (maximum allowed usage)
+  # Main app container resource limits.
   limits:
-    cpu: 200m        # Max CPU (0.2 core)
-    memory: 256Mi    # Max memory
-  
-  # Resource requests (minimum guaranteed resources)
+    cpu: 200m
+    memory: 256Mi
+  # Main app container resource requests. CPU requests are required for HPA CPU metrics.
   requests:
-    cpu: 100m        # Requested CPU (0.1 core)
-    memory: 128Mi    # Requested memory
+    cpu: 100m
+    memory: 128Mi
 
 exporter:
+  # Apache exporter sidecar resources. Requests keep HPA CPU calculations valid.
   resources:
     limits:
       cpu: 100m
@@ -54,19 +68,17 @@ exporter:
       memory: 64Mi
 
 hpa:
-  # Enable Horizontal Pod Autoscaler
+  # Enable HorizontalPodAutoscaler for the CV app Deployment.
   enabled: true
-  
-  # Minimum number of pods
+  # Minimum number of app pods.
   minReplicas: 1
-  
-  # Maximum number of pods
+  # Maximum number of app pods.
   maxReplicas: 5
-  
-  # Target average CPU utilization (%) for scaling
+  # Target average CPU utilization percentage for scaling decisions.
   targetCPUUtilizationPercentage: 50
 
 kube-prometheus-stack:
+  # Dependency chart configuration for Grafana and dashboard sidecar loading.
   grafana:
     enabled: true
     adminPassword: admin
@@ -76,5 +88,6 @@ kube-prometheus-stack:
         label: grafana_dashboard
 
 prometheus:
+  # Allow Prometheus to discover ServiceMonitor objects outside the dependency defaults.
   prometheusSpec:
     serviceMonitorSelectorNilUsesHelmValues: false

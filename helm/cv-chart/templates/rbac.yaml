@@ -1,0 +1,44 @@
+{{- if .Values.serviceAccount.create }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "cv-app.serviceAccountName" . }}
+  labels:
+    app: {{ include "cv-app.name" . }}
+  {{- with .Values.serviceAccount.annotations }}
+  # Optional annotations can attach cloud identity, such as IRSA on EKS.
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+# Disable token mounting by default because the CV app does not call the Kubernetes API.
+automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
+{{- end }}
+{{- if .Values.rbac.create }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ include "cv-app.fullname" . }}
+  labels:
+    app: {{ include "cv-app.name" . }}
+# Namespace-scoped permissions for this release only.
+rules:
+  {{- toYaml .Values.rbac.rules | nindent 2 }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "cv-app.fullname" . }}
+  labels:
+    app: {{ include "cv-app.name" . }}
+subjects:
+  # Bind the Role to the app ServiceAccount in the release namespace.
+  - kind: ServiceAccount
+    name: {{ include "cv-app.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  # RoleBinding grants the permissions defined above; it does not create new rules.
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "cv-app.fullname" . }}
+{{- end }}

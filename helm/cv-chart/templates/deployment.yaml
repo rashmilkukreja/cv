@@ -3,7 +3,9 @@ kind: Deployment
 metadata:
   name: {{ include "cv-app.fullname" . }}
 spec:
+  # Initial pod count. HPA can later adjust this when hpa.enabled is true.
   replicas: {{ .Values.replicaCount }}
+  # Keep the Deployment selector aligned with the pod template labels.
   selector:
     matchLabels:
       app: {{ include "cv-app.name" . }}
@@ -12,19 +14,25 @@ spec:
       labels:
         app: {{ include "cv-app.name" . }}
     spec:
+      # Run pods with the chart-managed ServiceAccount instead of default.
+      serviceAccountName: {{ include "cv-app.serviceAccountName" . }}
       containers:
         - name: cv-app
+          # Main Apache-based CV website image.
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
+            # Apache serves the website inside the pod on port 80.
             - containerPort: 80
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
         - name: apache-exporter
+          # Sidecar exporter converts Apache server-status data into Prometheus metrics.
           image: lusotycoon/apache-exporter:latest
           args:
-          - "--scrape_uri=http://localhost/server-status?auto"
+            - "--scrape_uri=http://localhost/server-status?auto"
           ports:
+            # Named port is used by the Service and ServiceMonitor for scraping.
             - name: metrics
               containerPort: 9117
           resources:

@@ -1,4 +1,5 @@
 suite: Service Tests
+# Service tests protect public HTTP routing and Prometheus scrape wiring.
 templates:
   - templates/service.yaml
 
@@ -6,20 +7,24 @@ tests:
   - it: should expose correct port
     asserts:
       - equal:
+          # Main website traffic should remain on port 80.
           path: spec.ports[0].port
           value: 80
 
   - it: should have correct service type
     asserts:
       - equal:
+          # NodePort supports the AWS ALB instance target-type used by this chart.
           path: spec.type
           value: NodePort
 
   - it: should expose the exporter metrics port
     asserts:
       - equal:
+          # ServiceMonitor references this named port for apache-exporter metrics.
           path: spec.ports[1].name
           value: metrics
       - equal:
+          # apache-exporter listens on 9117 inside the pod.
           path: spec.ports[1].port
           value: 9117
