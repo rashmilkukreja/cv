@@ -1,0 +1,26 @@
+{{- if and .Values.tracing.enabled .Values.tempo.datasource.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cv-app.fullname" . }}-tempo-datasource
+  labels:
+    # Grafana sidecar imports ConfigMaps with this label as datasources.
+    {{ .Values.tempo.datasource.label }}: "1"
+data:
+  tempo-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Tempo
+        type: tempo
+        uid: tempo
+        access: proxy
+        url: {{ .Values.tempo.datasource.url | quote }}
+        isDefault: false
+        editable: true
+        jsonData:
+          httpMethod: GET
+          tracesToMetrics:
+            datasourceUid: {{ .Values.tempo.datasource.prometheusDatasourceUid | quote }}
+          serviceMap:
+            datasourceUid: {{ .Values.tempo.datasource.prometheusDatasourceUid | quote }}
+{{- end }}

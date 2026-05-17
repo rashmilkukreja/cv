@@ -25,6 +25,19 @@ ingress:
   # Hostname for DNS-based access. Set to "" to use the ALB DNS name directly.
   host: cv.local
 
+networkPolicy:
+  # Create a NetworkPolicy so only declared pod ports accept inbound traffic.
+  enabled: true
+  ingress:
+    http:
+      # Empty source list means allow HTTP from any source that can reach the Service.
+      # Add namespaceSelector/podSelector entries here to restrict ingress controllers.
+      from: []
+    metrics:
+      # Empty source list keeps Prometheus scraping simple across namespaces.
+      # Tighten this to the monitoring namespace labels once they are fixed in the cluster.
+      from: []
+
 serviceAccount:
   # Create a dedicated Kubernetes ServiceAccount for the CV app pods.
   create: true
@@ -34,6 +47,71 @@ serviceAccount:
   annotations: {}
   # Keep the Kubernetes API token out of the pod unless the app needs it.
   automountServiceAccountToken: false
+
+podSecurityContext:
+  # Do not join host namespaces; keeps pods isolated from node network, PID, and IPC spaces.
+  hostNetwork: false
+  hostPID: false
+  hostIPC: false
+  # Apply the default container runtime seccomp profile for syscall filtering.
+  seccompProfile:
+    type: RuntimeDefault
+  # Shared filesystem group for mounted volumes if the app needs write access.
+  fsGroup: 101
+
+securityContext:
+  # Run the web container as a non-root user provided by the Apache image.
+  runAsNonRoot: true
+  runAsUser: 101
+  runAsGroup: 101
+  # Prevent privilege escalation and remove ambient Linux capabilities.
+  allowPrivilegeEscalation: false
+  privileged: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
+
+probes:
+  # Kubernetes uses startupProbe before liveness so Apache gets time to initialize.
+  startup:
+    enabled: true
+    path: /
+    port: 80
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 2
+    failureThreshold: 12
+  # Readiness controls whether the Service sends traffic to the pod.
+  readiness:
+    enabled: true
+    path: /
+    port: 80
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 3
+  # Liveness restarts Apache if it stops responding after startup has completed.
+  liveness:
+    enabled: true
+    path: /
+    port: 80
+    initialDelaySeconds: 15
+    periodSeconds: 20
+    timeoutSeconds: 2
+    failureThreshold: 3
+
+exporterSecurityContext:
+  # Keep the metrics sidecar unprivileged and isolated from host access.
+  runAsNonRoot: true
+  runAsUser: 65534
+  runAsGroup: 65534
+  allowPrivilegeEscalation: false
+  privileged: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop:
+      - ALL
 
 rbac:
   # Create a namespace-scoped Role and RoleBinding for the app ServiceAccount.
@@ -67,6 +145,61 @@ exporter:
       cpu: 50m
       memory: 64Mi
 
+tracing:
+  # Create a ConfigMap with OpenTelemetry-compatible tracing settings.
+  enabled: true
+  # Logical service name shown by tracing backends such as Tempo.
+  serviceName: cv-app
+  # Deployment environment tag attached to spans.
+  environment: production
+  # OTLP HTTP endpoint for Tempo. Replace the namespace if Tempo is installed elsewhere.
+  otlpEndpoint: http://tempo-distributor.observability.svc.cluster.local:4318
+  # OTLP gRPC endpoint used by the optional trace-generator sidecar.
+  otlpGrpcEndpoint: tempo-distributor.observability.svc.cluster.local:4317
+  # Sampling ratio from 0.0 to 1.0; keep full sampling for portfolio demo visibility.
+  samplingRatio: "1.0"
+  # Exporter protocol expected by most OpenTelemetry collectors.
+  exporterProtocol: http/protobuf
+  generator:
+    # Emit continuous synthetic spans from the application pod for demo validation.
+    enabled: true
+    # telemetrygen is the OpenTelemetry project utility for generating sample traces.
+    image: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+    pullPolicy: IfNotPresent
+    # Use "inf" for continuous traces while the pod is running.
+    duration: inf
+    # Keep traffic intentionally low for a portfolio/demo cluster.
+    rate: "0.1"
+    workers: 1
+    resources:
+      limits:
+        cpu: 50m
+        memory: 64Mi
+      requests:
+        cpu: 10m
+        memory: 32Mi
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 65534
+      runAsGroup: 65534
+      allowPrivilegeEscalation: false
+      privileged: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+          - ALL
+
+tempo:
+  # Create a Grafana datasource ConfigMap for querying traces from Tempo.
+  datasource:
+    enabled: true
+    # Grafana queries Tempo through its HTTP query frontend/distributor service.
+    url: http://tempo-query-frontend.observability.svc.cluster.local:3100
+    # Label watched by Grafana's datasource sidecar.
+    label: grafana_datasource
+    # Link traces back to Prometheus metrics in Grafana Explore.
+    prometheusDatasourceUid: prometheus
+
 hpa:
   # Enable HorizontalPodAutoscaler for the CV app Deployment.
   enabled: true
@@ -86,6 +219,9 @@ kube-prometheus-stack:
       dashboards:
         enabled: true
         label: grafana_dashboard
+      datasources:
+        enabled: true
+        label: grafana_datasource
 
 prometheus:
   # Allow Prometheus to discover ServiceMonitor objects outside the dependency defaults.

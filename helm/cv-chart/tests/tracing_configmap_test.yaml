@@ -1,0 +1,43 @@
+suite: Tracing ConfigMap Tests
+# Tracing tests ensure OpenTelemetry settings render consistently for deployments.
+templates:
+  - templates/tracing-configmap.yaml
+
+tests:
+  - it: should render tracing configmap by default
+    asserts:
+      - isKind:
+          of: ConfigMap
+      - equal:
+          path: metadata.name
+          value: RELEASE-NAME-cv-app-tracing
+      - equal:
+          path: data.OTEL_SERVICE_NAME
+          value: cv-app
+      - equal:
+          path: data.OTEL_TRACES_EXPORTER
+          value: otlp
+
+  - it: should default to tempo distributor endpoint
+    asserts:
+      - equal:
+          path: data.OTEL_EXPORTER_OTLP_ENDPOINT
+          value: http://tempo-distributor.observability.svc.cluster.local:4318
+      - equal:
+          path: data.OTEL_EXPORTER_OTLP_GRPC_ENDPOINT
+          value: tempo-distributor.observability.svc.cluster.local:4317
+
+  - it: should support custom collector endpoint
+    set:
+      tracing.otlpEndpoint: http://tempo-distributor.observability.svc.cluster.local:4318
+    asserts:
+      - equal:
+          path: data.OTEL_EXPORTER_OTLP_ENDPOINT
+          value: http://tempo-distributor.observability.svc.cluster.local:4318
+
+  - it: should not render when disabled
+    set:
+      tracing.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

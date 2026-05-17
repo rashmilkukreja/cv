@@ -14,6 +14,12 @@ spec:
       labels:
         app: {{ include "cv-app.name" . }}
     spec:
+      # Explicitly avoid host namespace access and apply runtime syscall filtering.
+      hostNetwork: {{ .Values.podSecurityContext.hostNetwork }}
+      hostPID: {{ .Values.podSecurityContext.hostPID }}
+      hostIPC: {{ .Values.podSecurityContext.hostIPC }}
+      securityContext:
+        {{- omit .Values.podSecurityContext "hostNetwork" "hostPID" "hostIPC" | toYaml | nindent 8 }}
       # Run pods with the chart-managed ServiceAccount instead of default.
       serviceAccountName: {{ include "cv-app.serviceAccountName" . }}
       containers:
@@ -21,14 +27,57 @@ spec:
           # Main Apache-based CV website image.
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          {{- if .Values.tracing.enabled }}
+          envFrom:
+            # Loads OpenTelemetry tracing settings from the chart-managed ConfigMap.
+            - configMapRef:
+                name: {{ include "cv-app.fullname" . }}-tracing
+          {{- end }}
           ports:
             # Apache serves the website inside the pod on port 80.
             - containerPort: 80
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            # Wait for Apache to become reachable before liveness checks can restart it.
+            httpGet:
+              path: {{ .Values.probes.startup.path }}
+              port: {{ .Values.probes.startup.port }}
+            initialDelaySeconds: {{ .Values.probes.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            # Remove the pod from Service endpoints when Apache cannot serve traffic.
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: {{ .Values.probes.readiness.port }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+          {{- end }}
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            # Restart the container if Apache becomes unhealthy after startup.
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: {{ .Values.probes.liveness.port }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+          {{- end }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
         - name: apache-exporter
           # Sidecar exporter converts Apache server-status data into Prometheus metrics.
           image: lusotycoon/apache-exporter:latest
+          securityContext:
+            {{- toYaml .Values.exporterSecurityContext | nindent 12 }}
           args:
             - "--scrape_uri=http://localhost/server-status?auto"
           ports:
@@ -37,3 +86,24 @@ spec:
               containerPort: 9117
           resources:
             {{- toYaml .Values.exporter.resources | nindent 12 }}
+        {{- if and .Values.tracing.enabled .Values.tracing.generator.enabled }}
+        - name: cv-trace-generator
+          # Emits low-rate synthetic OpenTelemetry spans so Tempo has application traces.
+          image: {{ .Values.tracing.generator.image | quote }}
+          imagePullPolicy: {{ .Values.tracing.generator.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.tracing.generator.securityContext | nindent 12 }}
+          envFrom:
+            # Reuses service name, resource attributes, and Tempo endpoint settings.
+            - configMapRef:
+                name: {{ include "cv-app.fullname" . }}-tracing
+          args:
+            - traces
+            - --otlp-insecure
+            - --otlp-endpoint={{ .Values.tracing.otlpGrpcEndpoint }}
+            - --duration={{ .Values.tracing.generator.duration }}
+            - --rate={{ .Values.tracing.generator.rate }}
+            - --workers={{ .Values.tracing.generator.workers }}
+          resources:
+            {{- toYaml .Values.tracing.generator.resources | nindent 12 }}
+        {{- end }}

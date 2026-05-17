@@ -1,0 +1,19 @@
+{{- if .Values.tracing.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "cv-app.fullname" . }}-tracing
+  labels:
+    app: {{ include "cv-app.name" . }}
+    app.kubernetes.io/component: tracing
+data:
+  # OpenTelemetry environment variables consumed by instrumented apps or sidecars.
+  OTEL_SERVICE_NAME: {{ .Values.tracing.serviceName | quote }}
+  OTEL_RESOURCE_ATTRIBUTES: {{ printf "service.name=%s,deployment.environment=%s" .Values.tracing.serviceName .Values.tracing.environment | quote }}
+  OTEL_EXPORTER_OTLP_ENDPOINT: {{ .Values.tracing.otlpEndpoint | quote }}
+  OTEL_EXPORTER_OTLP_GRPC_ENDPOINT: {{ .Values.tracing.otlpGrpcEndpoint | quote }}
+  OTEL_EXPORTER_OTLP_PROTOCOL: {{ .Values.tracing.exporterProtocol | quote }}
+  OTEL_TRACES_EXPORTER: "otlp"
+  OTEL_TRACES_SAMPLER: "traceidratio"
+  OTEL_TRACES_SAMPLER_ARG: {{ .Values.tracing.samplingRatio | quote }}
+{{- end }}

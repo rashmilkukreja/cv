@@ -26,3 +26,142 @@ tests:
           # Exporter resource requests are required for predictable pod scheduling.
           path: spec.template.spec.containers[1].resources.requests.cpu
           value: 50m
+
+  - it: should load tracing config from configmap
+    asserts:
+      - equal:
+          # App container receives OpenTelemetry environment variables from ConfigMap.
+          path: spec.template.spec.containers[0].envFrom[0].configMapRef.name
+          value: RELEASE-NAME-cv-app-tracing
+
+  - it: should not use host namespaces
+    asserts:
+      - equal:
+          path: spec.template.spec.hostNetwork
+          value: false
+      - equal:
+          path: spec.template.spec.hostPID
+          value: false
+      - equal:
+          path: spec.template.spec.hostIPC
+          value: false
+
+  - it: should apply restricted pod security defaults
+    asserts:
+      - equal:
+          path: spec.template.spec.securityContext.seccompProfile.type
+          value: RuntimeDefault
+      - equal:
+          path: spec.template.spec.securityContext.fsGroup
+          value: 101
+
+  - it: should harden the app container security context
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.privileged
+          value: false
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop[0]
+          value: ALL
+
+  - it: should configure http startup readiness and liveness probes
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.path
+          value: /
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe.httpGet.port
+          value: 80
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: 80
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.path
+          value: /
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe.httpGet.port
+          value: 80
+
+  - it: should allow disabling app health probes
+    set:
+      probes.startup.enabled: false
+      probes.readiness.enabled: false
+      probes.liveness.enabled: false
+    asserts:
+      - isNull:
+          path: spec.template.spec.containers[0].startupProbe
+      - isNull:
+          path: spec.template.spec.containers[0].readinessProbe
+      - isNull:
+          path: spec.template.spec.containers[0].livenessProbe
+
+  - it: should harden the exporter container security context
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.privileged
+          value: false
+      - equal:
+          path: spec.template.spec.containers[1].securityContext.capabilities.drop[0]
+          value: ALL
+
+  - it: should generate application traces with telemetrygen sidecar
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[2].name
+          value: cv-trace-generator
+      - equal:
+          path: spec.template.spec.containers[2].image
+          value: ghcr.io/open-telemetry/opentelemetry-collector-contrib/telemetrygen:latest
+      - equal:
+          path: spec.template.spec.containers[2].args[0]
+          value: traces
+      - equal:
+          path: spec.template.spec.containers[2].args[2]
+          value: --otlp-endpoint=tempo-distributor.observability.svc.cluster.local:4317
+      - equal:
+          path: spec.template.spec.containers[2].args[3]
+          value: --duration=inf
+      - equal:
+          path: spec.template.spec.containers[2].envFrom[0].configMapRef.name
+          value: RELEASE-NAME-cv-app-tracing
+
+  - it: should allow disabling the trace generator sidecar
+    set:
+      tracing.generator.enabled: false
+    asserts:
+      - lengthEqual:
+          path: spec.template.spec.containers
+          count: 2
+
+  - it: should harden the trace generator container security context
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[2].securityContext.runAsNonRoot
+          value: true
+      - equal:
+          path: spec.template.spec.containers[2].securityContext.allowPrivilegeEscalation
+          value: false
+      - equal:
+          path: spec.template.spec.containers[2].securityContext.privileged
+          value: false
+      - equal:
+          path: spec.template.spec.containers[2].securityContext.capabilities.drop[0]
+          value: ALL
